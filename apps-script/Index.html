@@ -1762,25 +1762,51 @@ $('customerOrdersList').addEventListener('click',e=>{
     downloadBtn.disabled=true;
     const originalText=downloadBtn.textContent;
     downloadBtn.textContent='Preparing download…';
-    google.script.run.withSuccessHandler(fileData=>{
-      try{
-        if(!fileData||!fileData.ok||!fileData.base64)throw new Error(fileData&&fileData.error?fileData.error:'File data is missing.');
-        const raw=atob(fileData.base64),bytes=new Uint8Array(raw.length);
-        for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
-        const blob=new Blob([bytes],{type:fileData.mimeType||'application/octet-stream'});
-        const url=URL.createObjectURL(blob),a=document.createElement('a');
-        a.href=url;a.download=fileData.fileName||'configuration.bin';
-        document.body.appendChild(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),60000);
-        portalMessage('paymentSubmitMessage','Download started. Check your browser downloads.','success');
-      }catch(err){
-        portalMessage('paymentSubmitMessage','Download failed: '+(err&&err.message||'Please try again.'),'error');
-      }
+    let downloadFinished=false;
+    const finishDownloadError=message=>{
+      if(downloadFinished)return;
+      downloadFinished=true;
+      portalMessage('paymentSubmitMessage','Download failed: '+(message||'Please try again.'),'error');
       downloadBtn.disabled=false;downloadBtn.textContent=originalText;
-    }).withFailureHandler(err=>{
-      portalMessage('paymentSubmitMessage','Download failed: '+(err&&err.message||'Please try again.'),'error');
-      downloadBtn.disabled=false;downloadBtn.textContent=originalText;
-    }).getCustomerOrderFilePayload(requestId,session.token);
+    };
+    const decodePart=base64=>{
+      const raw=atob(base64),bytes=new Uint8Array(raw.length);
+      for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+      return bytes;
+    };
+    const requestPart=(meta,index,parts)=>{
+      google.script.run.withSuccessHandler(part=>{
+        if(!part||!part.ok||typeof part.base64!=='string'){
+          finishDownloadError(part&&part.error?part.error:'Could not receive a file part.');return;
+        }
+        parts.push(decodePart(part.base64));
+        const completed=index+1;
+        if(completed<meta.totalChunks){
+          downloadBtn.textContent='Preparing download… '+completed+'/'+meta.totalChunks;
+          requestPart(meta,completed,parts);
+          return;
+        }
+        try{
+          const blob=new Blob(parts,{type:meta.mimeType||'application/octet-stream'});
+          const url=URL.createObjectURL(blob),a=document.createElement('a');
+          a.href=url;a.download=meta.fileName||'configuration.bin';
+          document.body.appendChild(a);a.click();a.remove();
+          setTimeout(()=>URL.revokeObjectURL(url),60000);
+          downloadFinished=true;
+          portalMessage('paymentSubmitMessage','Download started. Check your browser downloads.','success');
+          downloadBtn.disabled=false;downloadBtn.textContent=originalText;
+        }catch(err){finishDownloadError(err&&err.message||'Could not save the downloaded file.');}
+      }).withFailureHandler(err=>finishDownloadError(err&&err.message||'Server could not send the file part.'))
+        .getCustomerOrderFileChunk(requestId,session.token,index);
+    };
+    google.script.run.withSuccessHandler(meta=>{
+      if(!meta||!meta.ok){finishDownloadError(meta&&meta.error?meta.error:'Could not prepare the configuration file.');return;}
+      if(!meta.totalChunks||meta.totalChunks<1){finishDownloadError('The configuration file is empty.');return;}
+      requestPart(meta,0,[]);
+    }).withFailureHandler(err=>finishDownloadError(err&&err.message||'Server could not prepare the file.'))
+      .getCustomerOrderFileMeta(requestId,session.token);
+    // Never leave the button stuck on “Preparing download…” if the server call stalls.
+    setTimeout(()=>{if(!downloadFinished)finishDownloadError('The download request timed out. Please try again or contact support.');},120000);
     return;
   }
   const del=e.target.closest('[data-delete-customer-order]');
