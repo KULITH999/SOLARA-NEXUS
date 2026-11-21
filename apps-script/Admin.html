@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solara Nexus | Admin Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03040a;--bg2:#070b18;--panel:rgba(10,18,40,.78);--neon:#00b3ff;--neon2:#2f6bff;--glow:rgba(0,179,255,.25);--text:#e8f1ff;--muted:#8fa3c7;--line:rgba(0,179,255,.18);--rowbg:rgba(0,0,0,.28);--good:#00c98a;--bad:#ff7186;--warn:#ffb020}
+:root[data-theme="light"]{--bg:#f3f7ff;--bg2:#fff;--panel:rgba(255,255,255,.9);--neon:#0077e6;--neon2:#2f6bff;--glow:rgba(0,119,230,.16);--text:#0a1530;--muted:#51638a;--line:rgba(0,119,230,.2);--rowbg:rgba(0,119,230,.055);--good:#079b6b;--bad:#d9435d;--warn:#b97900}
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:radial-gradient(circle at 15% 0%,rgba(0,179,255,.1),transparent 32%),var(--bg);color:var(--text);font-family:Inter,sans-serif;line-height:1.55}button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1320px;margin:auto;padding:26px 22px 70px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 0 24px;border-bottom:1px solid var(--line);margin-bottom:28px}.brand{font:900 1.05rem Orbitron,sans-serif;letter-spacing:.13em}.brand span{color:var(--neon);text-shadow:0 0 16px var(--glow)}.top-actions{display:flex;gap:10px;align-items:center}.top a,.top button,.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--text);padding:10px 15px;text-decoration:none;font-weight:600;font-size:.85rem}.top button:hover,.top a:hover,.btn:hover{border-color:var(--neon)}h1,h2,h3{font-family:Orbitron,sans-serif}h1{font-size:clamp(1.6rem,3vw,2.25rem);margin-bottom:7px}h2{font-size:1.2rem;margin-bottom:8px}h3{font-size:1rem}.muted{color:var(--muted);font-size:.9rem}.login-wrap{max-width:460px;margin:8vh auto}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;backdrop-filter:blur(16px);box-shadow:0 18px 60px rgba(0,80,180,.1);min-width:0}.field{display:grid;gap:7px;margin:15px 0}.field label{font-size:.83rem;color:var(--muted);font-weight:600}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:11px;background:var(--rowbg);color:var(--text);padding:12px 14px;outline:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--neon);box-shadow:0 0 0 3px var(--glow)}.field textarea{min-height:88px;resize:vertical;color:var(--text);background:var(--rowbg);border:1px solid var(--line);border-radius:11px;padding:12px 14px;outline:none}.field select option{background:var(--bg2);color:var(--text)}.btn.primary{background:linear-gradient(135deg,var(--neon),var(--neon2));border:0;color:#00101f}.btn.good{color:var(--good);border-color:rgba(0,201,138,.35)}.btn.danger{color:var(--bad);border-color:rgba(255,113,134,.35)}.btn:disabled{opacity:.5;cursor:wait}.wide{width:100%}.message{min-height:22px;margin:10px 0;font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}.message.error{color:var(--bad)}.message.success{color:var(--good)}[hidden]{display:none!important}.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:20px 0}.stat{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:17px}.stat small{display:block;color:var(--muted);font-size:.75rem;letter-spacing:.08em}.stat b{display:block;font:700 1.5rem Orbitron,sans-serif;margin-top:6px;color:var(--neon)}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.admin-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;align-items:start;margin-top:18px}.admin-nav{display:grid;gap:10px;padding:16px;margin:0;position:sticky;top:18px;z-index:10;background:var(--panel);border:1px solid var(--line);border-radius:20px;box-shadow:0 16px 44px rgba(0,80,180,.12)}.admin-nav button{width:100%;min-height:54px;display:flex;align-items:center;gap:13px;text-align:left;border:1px solid transparent;border-radius:13px;padding:13px 16px;background:transparent;color:var(--muted);font-weight:750;font-size:.94rem;white-space:normal;transition:.22s}.admin-nav button:hover{border-color:var(--line);background:var(--rowbg);color:var(--text);transform:translateX(2px)}.admin-nav button.active{background:linear-gradient(115deg,var(--neon),var(--neon2));border-color:transparent;color:#00101f;box-shadow:0 8px 26px var(--glow);font-weight:800}.admin-nav button .nav-count{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#ff4d4d;color:#fff;font:800 .72rem Inter,sans-serif}.admin-nav button.active .nav-count{background:#fff;color:#164d91}.admin-content{min-width:0}.admin-content>.grid{margin-top:0}.admin-content>.section{margin-top:18px}.admin-content>.section:first-of-type{margin-top:0}[data-admin-panel][hidden]{display:none!important}.panel-title{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 12px}.panel-title .muted{font-size:.8rem}.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:21px;margin-bottom:18px;min-width:0}.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:16px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.switch{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:.85rem;margin:10px 0}.switch input{accent-color:var(--neon);width:17px;height:17px}.list{display:grid;gap:11px}.item{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--rowbg);min-width:0}.item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}.badge{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px 9px;font-size:.7rem;font-weight:700;text-transform:uppercase}.badge.pending,.badge.failed,.badge.processing{color:var(--warn);border-color:rgba(255,176,32,.35)}.badge.approved,.badge.enabled{color:var(--good);border-color:rgba(0,201,138,.35)}.badge.rejected,.badge.disabled{color:var(--bad);border-color:rgba(255,113,134,.35)}.price{font:700 1.15rem Orbitron,sans-serif;color:var(--neon);margin:9px 0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.actions .btn{padding:8px 12px;font-size:.8rem}.file{display:block;color:var(--neon);font-size:.84rem;margin-top:9px;overflow-wrap:anywhere}.empty{border:1px dashed var(--line);padding:28px;text-align:center;border-radius:12px;color:var(--muted);font-size:.9rem}.foot{text-align:center;color:var(--muted);font-size:.78rem;margin-top:28px}@media(max-width:1050px){.admin-layout{grid-template-columns:210px minmax(0,1fr);gap:16px}.admin-nav{padding:12px}.admin-nav button{font-size:.86rem;padding:12px}}@media(max-width:850px){.admin-layout{grid-template-columns:1fr}.admin-nav{position:relative;top:auto;grid-template-columns:repeat(2,minmax(0,1fr))}.admin-nav button{min-height:48px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.wrap{padding:16px 13px 50px}.card,.section{padding:16px}.form-grid{grid-template-columns:1fr}.top{align-items:flex-start}.stats{grid-template-columns:1fr 1fr}.admin-nav{grid-template-columns:1fr 1fr;gap:7px;padding:9px}.admin-nav button{font-size:.78rem;padding:10px;gap:7px;min-height:44px}}
+
+
+/* ===== SOLARA NEXUS ADMIN: MOBILE-ONLY LAYOUT REFINEMENT =====
+   Desktop styles and all existing functionality remain unchanged. */
+@media (max-width: 560px) {
+  html, body { width:100%; max-width:100%; overflow-x:hidden; }
+  body { -webkit-text-size-adjust:100%; }
+  .wrap { width:100%; padding:13px 11px 38px; }
+  .top { align-items:center; gap:10px; padding:9px 0 15px; margin-bottom:19px; }
+  .brand { font-size:.82rem; letter-spacing:.07em; line-height:1.5; }
+  .brand small { display:block; font-size:.55rem !important; }
+  .top-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+  .top a, .top button { min-width:0; padding:9px 8px; font-size:.75rem; }
+  h1 { font-size:1.42rem; line-height:1.25; overflow-wrap:anywhere; }
+  h2 { font-size:1.05rem; line-height:1.35; }
+  h3 { font-size:.94rem; }
+  .muted { font-size:.82rem; overflow-wrap:anywhere; }
+  .login-wrap { width:100%; max-width:460px; margin:5vh auto 0; }
+  .card, .section { padding:14px; border-radius:15px; }
+  .toolbar { align-items:flex-start; gap:10px; margin:13px 0; }
+  .toolbar > div { min-width:0; }
+  .toolbar > .badge { max-width:100%; white-space:normal; text-align:center; }
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:14px 0; }
+  .stat { min-width:0; padding:12px 10px; border-radius:12px; }
+  .stat small { font-size:.61rem; line-height:1.35; letter-spacing:.04em; overflow-wrap:anywhere; }
+  .stat b { font-size:1.18rem; overflow-wrap:anywhere; }
+  .admin-layout { grid-template-columns:minmax(0,1fr); gap:12px; margin-top:13px; }
+  .admin-nav {
+    position:relative; top:auto; display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px;
+    padding:8px; border-radius:14px;
+  }
+  .admin-nav button {
+    min-width:0; min-height:43px; padding:9px 8px; gap:6px;
+    font-size:.73rem; line-height:1.25; border-radius:10px;
+    overflow-wrap:anywhere;
+  }
+  .admin-nav button .nav-count { min-width:19px; height:19px; padding:0 5px; font-size:.64rem; }
+  .admin-content { min-width:0; width:100%; }
+  .admin-content > .grid { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .admin-content > .section { margin-top:12px; }
+  .section { min-width:0; margin-bottom:12px; }
+  .section-head { gap:8px; margin-bottom:12px; }
+  .section-head > div { min-width:0; }
+  .form-grid { grid-template-columns:minmax(0,1fr); gap:0; }
+  .field { min-width:0; margin:11px 0; }
+  .field input, .field select, .field textarea { min-width:0; width:100%; font-size:16px; padding:12px; }
+  .actions { gap:7px; }
+  .actions .btn { flex:1 1 125px; min-width:0; padding:10px 9px; font-size:.75rem; white-space:normal; }
+  .btn { max-width:100%; }
+  .item { min-width:0; padding:12px; border-radius:12px; }
+  .item-top { align-items:flex-start; gap:7px; }
+  .item-top > * { min-width:0; overflow-wrap:anywhere; }
+  .item p, .item div, .item span { overflow-wrap:anywhere; }
+  .file { word-break:break-word; }
+  .list { min-width:0; }
+  .price { font-size:1rem; }
+  .message { overflow-wrap:anywhere; }
+  .foot { padding:0 8px; line-height:1.5; }
+}
+@media (max-width: 360px) {
+  .wrap { padding-left:8px; padding-right:8px; }
+  .admin-nav { gap:5px; padding:6px; }
+  .admin-nav button { font-size:.68rem; padding:8px 6px; }
+  .stat { padding:10px 8px; }
+  .stat small { font-size:.56rem; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">SOLARA <span>NEXUS</span> <small style="font:600 .62rem Inter,sans-serif;color:var(--muted);letter-spacing:.12em">ADMIN PORTAL</small></div>
+    <div class="top-actions">
+      <a id="customerSiteLink" href="?">Customer Website</a>
+      <button type="button" id="themeBtn" aria-label="Toggle theme">☼ / ◐</button>
+      <button type="button" id="refreshBtn" hidden>Refresh</button>
+      <button type="button" id="logoutBtn" class="danger" hidden>Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="login-wrap card" id="loginBox">
+      <p class="muted" style="letter-spacing:.16em;font-size:.72rem;margin-bottom:10px">SECURE ACCESS</p>
+      <h1>Administrator Sign In</h1>
+      <p class="muted">Sign in to manage package prices and review customer payment slips.</p>
+      <form id="loginForm">
+        <div class="field"><label for="username">Admin username</label><input id="username" name="username" autocomplete="username" required maxlength="80"></div>
+        <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="120"></div>
+        <div class="message" id="loginMessage" role="status" aria-live="polite"></div>
+        <button class="btn primary wide" type="submit" id="loginBtn">Secure Login</button>
+      </form>
+    </section>
+
+    <section id="workspace" hidden>
+      <div class="toolbar"><div><p class="muted" style="letter-spacing:.15em;font-size:.72rem">CONTROL CENTER</p><h1>Admin Dashboard</h1><p class="muted">Manage LKR packages and approve payments before applying changes to 3x-ui.</p></div><span class="badge enabled" id="connectionBadge">ADMIN SESSION ACTIVE</span></div>
+      <div class="stats">
+        <div class="stat"><small>CONFIGURED PACKAGES</small><b id="packageCount">0</b></div>
+        <div class="stat"><small>PAYMENTS TO REVIEW</small><b id="pendingCount">0</b></div>
+        <div class="stat"><small>ACTIVE INBOUNDS</small><b id="inboundCount">0</b></div>
+        <div class="stat"><small>ORDER SERVICES</small><b id="serviceCount">0</b></div>
+      </div>
+      <div class="admin-layout">
+      <nav class="admin-nav" id="adminNav" aria-label="Admin sections">
+        <button type="button" class="active" data-admin-tab="packages">▦ Packages</button>
+        <button type="button" data-admin-tab="payments">▤ Payments</button>
+        <button type="button" data-admin-tab="new-orders">✦ New Orders <span class="nav-count" id="newOrdersBadge" hidden>0</span></button>
+        <button type="button" data-admin-tab="services">◇ Order Services</button>
+        <button type="button" data-admin-tab="wallet-settings">⚙ Wallet Details</button>
+        <button type="button" data-admin-tab="wallet-requests">⇧ Wallet Requests</button>
+        <button type="button" data-admin-tab="wallet-credit">＋ Wallet Credit</button>
+        <button type="button" data-admin-tab="customer-notifications">✉ Customer Notifications</button>
+      </nav>
+      <div class="admin-content">
+      <div class="grid">
+        <section class="section" data-admin-panel="packages">
+          <div class="section-head"><div><h2>Package Price Manager</h2><p class="muted">Add a separate entry for each package / validity / data combination.</p></div></div>
+          <form id="packageForm">
+            <input type="hidden" id="packageId">
+            <div class="form-grid">
+              <div class="field"><label for="packageName">Package name</label><input id="packageName" placeholder="Starter / Nexus / Elite" required maxlength="40"></div>
+              <div class="field"><label for="packagePrice">Price (LKR)</label><input id="packagePrice" type="number" min="1" step="1" placeholder="Enter price" required></div>
+              <div class="field"><label for="packageDays">Validity</label><select id="packageDays"><option value="30">30 Days</option><option value="60">60 Days</option><option value="90">90 Days</option><option value="0">Unlimited</option></select></div>
+              <div class="field"><label for="packageData">Data allowance</label><select id="packageData"><option value="50">50 GB</option><option value="100">100 GB</option><option value="200">200 GB</option><option value="0">Unlimited</option></select></div>
+              <div class="field"><label for="packageInbound">Inbound for new clients</label><select id="packageInbound" required><option value="">Loading inbounds…</option></select></div>
+              <div class="field"><label for="packageFeatures">Features (optional)</label><input id="packageFeatures" maxlength="200" placeholder="e.g. 1 device · Standard support"></div>
+            </div>
+            <label class="switch"><input type="checkbox" id="packageEnabled"> Make this package available to customers</label>
+            <div class="actions"><button class="btn primary" id="packageSaveBtn" type="submit">Save Package</button><button class="btn" id="packageClearBtn" type="button">Clear Form</button></div>
+            <div class="message" id="packageMessage" role="status" aria-live="polite"></div>
+          </form>
+          <div style="height:1px;background:var(--line);margin:20px 0"></div>
+          <h2>Configured Packages</h2>
+          <div class="list" id="packageList"><div class="empty">Loading packages…</div></div>
+        </section>
+        <section class="section" data-admin-panel="payments" hidden>
+          <div class="section-head"><div><h2>Payment Slip Approvals</h2><p class="muted">Renewals and package changes. New Order Services orders are shown separately.</p></div></div>
+          <div class="list" id="paymentList"><div class="empty">Loading payment requests…</div></div>
+        </section>
+        <section class="section" data-admin-panel="new-orders" hidden>
+          <div class="section-head"><div><h2>New Customer Orders</h2><p class="muted">Every new order appears here separately from renewals. Approve slip payments first; wallet orders are activated immediately. Then attach the customer's app config.</p></div></div>
+          <div class="list" id="newOrderList"><div class="empty">Loading new orders…</div></div>
+        </section>
+      </div>
+      <section class="section" data-admin-panel="services" style="margin-top:18px" hidden>
+        <div class="section-head"><div><p class="muted" style="letter-spacing:.14em;font-size:.7rem">SERVICE CONTROL</p><h2>Order Services Dashboard</h2><p class="muted">Create clean service cards using only price, validity and data allowance.</p></div><span class="badge enabled">LIVE WEBSITE SYNC</span></div>
+        <div class="grid">
+          <div class="card" style="box-shadow:none">
+            <h2 id="serviceFormTitle">Add New Service</h2>
+            <p class="muted">Enter the service name and the three details customers will see.</p>
+            <form id="serviceForm">
+              <input type="hidden" id="serviceId">
+              <div class="field"><label for="serviceAppType">VPN Application</label><select id="serviceAppType" required><option value="http-injector">⇄ HTTP Injector</option><option value="napsternetv">◈ NetMod</option><option value="npv-tunnel">⌁ NPV Tunnel</option><option value="v2box">⬡ V2Box</option></select></div>
+              <div class="field"><label for="serviceName">Service name</label><input id="serviceName" required maxlength="60" placeholder="e.g. LS Basic"></div>
+              <div class="field"><label for="servicePackage">Linked PackageCatalog package / 3x-ui inbound</label><select id="servicePackage" required><option value="">Load packages first</option></select></div>
+              <div class="form-grid">
+                <div class="field"><label for="servicePrice">Price (LKR)</label><input id="servicePrice" type="number" min="0" step="1" required placeholder="2700"></div>
+                <div class="field"><label for="serviceDays">Validity</label><select id="serviceDays" required><option value="30">30 Days</option><option value="60">60 Days</option><option value="90">90 Days</option><option value="0">Unlimited</option></select></div>
+                <div class="field"><label for="serviceData">Data limitation (GB)</label><select id="serviceData" required><option value="50">50 GB</option><option value="100">100 GB</option><option value="200">200 GB</option><option value="0">Unlimited</option></select></div>
+              </div>
+              <label class="switch"><input type="checkbox" id="serviceEnabled"> Show this service on website</label>
+              <div class="actions"><button class="btn primary" id="serviceSaveBtn" type="submit">Save Service</button><button class="btn" id="serviceClearBtn" type="button">Clear Form</button></div>
+              <div class="message" id="serviceMessage" role="status" aria-live="polite"></div>
+            </form>
+          </div>
+          <div class="card" style="box-shadow:none">
+            <div class="section-head"><div><h2>Published Services</h2><p class="muted">Manage the cards shown in Order Services.</p></div></div>
+            <div class="list" id="serviceList"><div class="empty">Loading services…</div></div>
+          </div>
+        </div>
+      </section>
+      <section class="section" data-admin-panel="wallet-settings" style="margin-top:18px" hidden>
+        <div class="section-head"><div><h2>Wallet Payment Details</h2><p class="muted">Set the bank transfer and EZ Cash details customers see when they request a wallet top-up.</p></div></div>
+        <form id="walletPaymentSettingsForm">
+          <h3>Bank Transfer</h3><div class="form-grid">
+            <div class="field"><label for="walletBankName">Bank name</label><input id="walletBankName" maxlength="100"></div>
+            <div class="field"><label for="walletBankAccountName">Account holder name</label><input id="walletBankAccountName" maxlength="120"></div>
+            <div class="field"><label for="walletBankAccountNumber">Account number</label><input id="walletBankAccountNumber" maxlength="80"></div>
+            <div class="field"><label for="walletBankBranch">Branch</label><input id="walletBankBranch" maxlength="100"></div>
+          </div>
+          <h3 style="margin-top:18px">EZ Cash</h3><div class="form-grid">
+            <div class="field"><label for="walletEzName">Registered name</label><input id="walletEzName" maxlength="120"></div>
+            <div class="field"><label for="walletEzNumber">EZ Cash number</label><input id="walletEzNumber" maxlength="80"></div>
+          </div>
+          <div class="actions"><button class="btn primary" type="submit" id="walletSettingsSaveBtn">Save Payment Details</button></div>
+          <div class="message" id="walletSettingsMessage" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <section class="section" data-admin-panel="wallet-requests" style="margin-top:18px" hidden>
+        <div class="section-head"><div><h2>Wallet Top-up Requests</h2><p class="muted">Review the customer's Gmail, amount, payment method, note and uploaded slip. Approving credits only the wallet.</p></div></div>
+        <div class="list" id="walletTopupList"><div class="empty">Loading wallet top-ups…</div></div>
+      </section>
+      <section class="section" data-admin-panel="wallet-credit" style="margin-top:18px" hidden>
+        <div class="section-head"><div><h2>Customer Wallet Credit</h2><p class="muted">Add an LKR wallet balance to an existing customer. The customer can then renew or change packages instantly using their wallet.</p></div></div>
+        <form id="walletCreditForm">
+          <div class="form-grid">
+            <div class="field"><label for="walletEmail">Customer website email</label><input id="walletEmail" type="email" required placeholder="customer@example.com"></div>
+            <div class="field"><label for="walletAmount">Credit amount (LKR)</label><input id="walletAmount" type="number" min="1" step="1" required placeholder="Enter amount"></div>
+            <div class="field" style="grid-column:1/-1"><label for="walletNote">Note (optional)</label><input id="walletNote" maxlength="250" placeholder="Wallet credit reference or reason"></div>
+          </div>
+          <div class="actions"><button class="btn primary" type="submit" id="walletCreditBtn">Add Wallet Credit</button></div>
+          <div class="message" id="walletCreditMessage" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      <section class="section" data-admin-panel="customer-notifications" style="margin-top:18px" hidden>
+        <div class="section-head"><div><h2>Send Customer Notification</h2><p class="muted">Send a private message to one customer. It will appear in that customer's Notifications tab.</p></div></div>
+        <form id="customerNotificationForm">
+          <div class="form-grid">
+            <div class="field" style="grid-column:1/-1"><label for="notificationCustomer">Customer account</label><select id="notificationCustomer" required><option value="">Loading customers…</option></select></div>
+            <div class="field" style="grid-column:1/-1"><label for="notificationTitle">Notification title (optional)</label><input id="notificationTitle" maxlength="100" placeholder="Optional title"></div>
+            <div class="field" style="grid-column:1/-1"><label for="notificationMessage">Message</label><textarea id="notificationMessage" maxlength="2000" required rows="4" placeholder="Write your message to this customer"></textarea></div>
+          </div>
+          <div class="actions"><button class="btn primary" type="submit" id="sendCustomerNotificationBtn">Send Notification</button></div>
+          <div class="message" id="customerNotificationMessage" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+      </div><!-- /.admin-content -->
+      </div><!-- /.admin-layout -->
+      <div class="message" id="globalMessage" role="status" aria-live="polite"></div>
+    </section>
+  </main>
+  <footer class="foot">© <span id="year"></span> Solara Nexus · Restricted administrator area</footer>
+</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const inGAS=typeof google!=='undefined'&&google.script&&google.script.run;
+let adminToken='';
+let adminData=null;
+function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function moneyLKR(value){return 'LKR '+Number(value||0).toLocaleString('en-LK',{maximumFractionDigits:0});}
+function quotaLabel(gb){return Number(gb)===0?'Unlimited':Number(gb)+' GB';}
+function daysLabel(d){return Number(d)===0?'Unlimited validity':Number(d)+' days';}
+function dateLabel(value){const d=new Date(value);return isNaN(d.getTime())?'—':d.toLocaleString();}
+function message(id,text,kind){const el=$(id);el.textContent=text||'';el.className='message'+(kind?' '+kind:'');}
+let adminOrderPollTimer=null;
+let adminOrderPollBusy=false;
+function setNewOrdersBadge(count){const el=$('newOrdersBadge');if(!el)return;const n=Math.max(0,Number(count)||0);el.textContent=n>99?'99+':String(n);el.hidden=n===0;}
+function adminHasUnsavedOrderConfig(){const host=$('newOrderList');if(!host)return false;const active=document.activeElement;return (host.contains(active)&&active.matches('[data-order-config-code],[data-order-config-file],[data-order-config-type]'))||!!host.querySelector('[data-order-config-code][data-dirty="1"], [data-order-config-file][data-dirty="1"]');}
+function pollNewOrders(){
+  if(!adminToken||!inGAS||document.hidden||adminOrderPollBusy)return;
+  adminOrderPollBusy=true;
+  google.script.run.withSuccessHandler(r=>{
+    adminOrderPollBusy=false;
+    if(r&&r.sessionExpired){adminExpired();return;}
+    if(!r||!r.ok)return;
+    const items=Array.isArray(r.newOrders)?r.newOrders:[];
+    const actionCount=items.filter(x=>{const st=String(x.status||'').toUpperCase();return ['PENDING','FAILED','PROCESSING'].includes(st)||(st==='APPROVED'&&!x.hasConfig);}).length;
+    setNewOrdersBadge(actionCount);
+    const nav=$('adminNav');
+    if(nav&&nav.dataset.active==='new-orders'&&!adminHasUnsavedOrderConfig())renderNewOrders(items);
+  }).withFailureHandler(err=>{adminOrderPollBusy=false;console.error('New Orders refresh failed: '+(err&&err.message||err));}).getAdminNewOrders(adminToken);
+}
+function pollNewOrderCount(){pollNewOrders();}
+function startNewOrderPolling(){if(adminOrderPollTimer)clearInterval(adminOrderPollTimer);pollNewOrders();adminOrderPollTimer=setInterval(pollNewOrders,5000);}
+function stopNewOrderPolling(){if(adminOrderPollTimer){clearInterval(adminOrderPollTimer);adminOrderPollTimer=null;}}
+function setSignedIn(on){$('loginBox').hidden=on;$('workspace').hidden=!on;$('refreshBtn').hidden=!on;$('logoutBtn').hidden=!on;}
+function showAdminPanel(name){
+  document.querySelectorAll('[data-admin-panel]').forEach(panel=>{panel.hidden=panel.dataset.adminPanel!==name;});
+  document.querySelectorAll('[data-admin-tab]').forEach(tab=>{const active=tab.dataset.adminTab===name;tab.classList.toggle('active',active);tab.setAttribute('aria-current',active?'page':'false');});
+  const nav=$('adminNav');if(nav)nav.dataset.active=name;
+  if(name==='new-orders')pollNewOrders();
+  if(name==='customer-notifications')loadNotificationCustomers();
+}
+$('adminNav').addEventListener('click',e=>{const tab=e.target.closest('[data-admin-tab]');if(tab)showAdminPanel(tab.dataset.adminTab);});
+
+$('year').textContent=new Date().getFullYear();
+$('customerSiteLink').href=location.pathname;
+let currentTheme='dark';try{currentTheme=localStorage.getItem('sn-admin-theme')||'dark';}catch(e){}document.documentElement.setAttribute('data-theme',currentTheme);
+$('themeBtn').onclick=()=>{currentTheme=currentTheme==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',currentTheme);try{localStorage.setItem('sn-admin-theme',currentTheme);}catch(e){}};
+function adminExpired(){stopNewOrderPolling();adminToken='';adminData=null;setNewOrdersBadge(0);setSignedIn(false);message('loginMessage','Admin session expired. Please sign in again.','error');}
+$('loginForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if(!inGAS){message('loginMessage','Open this page from the deployed Apps Script Web App URL.','error');return;}
+  const btn=$('loginBtn');btn.disabled=true;message('loginMessage','Checking credentials…','');
+  google.script.run.withSuccessHandler(result=>{
+    btn.disabled=false;
+    if(result&&result.ok){adminToken=result.token;$('loginForm').reset();message('loginMessage','','');setSignedIn(true);showAdminPanel('packages');loadAdminData();startNewOrderPolling();}
+    else message('loginMessage',(result&&result.error)||'Invalid admin username or password.','error');
+  }).withFailureHandler(err=>{btn.disabled=false;message('loginMessage','Could not connect to the admin service.','error');console.error(err&&err.message||err);})
+    .adminLogin({username:$('username').value.trim(),password:$('password').value});
+});
+function loadAdminData(){
+  if(!adminToken)return;
+  $('packageList').innerHTML='<div class="empty">Loading packages…</div>';
+  $('paymentList').innerHTML='<div class="empty">Loading payment requests…</div>';
+  $('packageInbound').innerHTML='<option value="">Loading 3x-ui inbounds…</option>';
+  $('inboundCount').textContent='…';
+  google.script.run.withSuccessHandler(result=>{
+    if(result&&result.sessionExpired){adminExpired();return;}
+    if(!result||!result.ok){
+      $('packageInbound').innerHTML='<option value="">Could not load inbounds — check error below</option>';
+      message('globalMessage',(result&&result.error)||'Could not load admin data.','error');
+      return;
+    }
+    adminData=result;renderPackages(result.packages||[]);renderPayments(result.payments||[]);renderNewOrders(result.newOrders||[]);renderServices(result.services||[]);renderWalletTopups(result.walletTopups||[]);setNewOrdersBadge((result.newOrders||[]).filter(x=>{const st=String(x.status||'').toUpperCase();return ['PENDING','FAILED','PROCESSING'].includes(st)||(st==='APPROVED'&&!x.hasConfig);}).length);
+    const ws=result.walletPaymentSettings||{};
+    $('walletBankName').value=ws.bankName||'';$('walletBankAccountName').value=ws.accountName||'';$('walletBankAccountNumber').value=ws.accountNumber||'';$('walletBankBranch').value=ws.branch||'';$('walletEzName').value=ws.ezName||'';$('walletEzNumber').value=ws.ezNumber||'';
+    const allInbounds=Array.isArray(result.inbounds)?result.inbounds:[];
+    const active=allInbounds.filter(x=>x.enabled===true);
+    $('packageInbound').innerHTML=active.length
+      ? '<option value="">Choose inbound</option>'+active.map(x=>`<option value="${Number(x.id)}">#${Number(x.id)} · ${esc(x.remark)} · ${esc(x.protocol)} · Port ${Number(x.port)}</option>`).join('')
+      : '<option value="">No enabled inbounds returned by 3x-ui</option>';
+    $('servicePackage').innerHTML='<option value="">Choose PackageCatalog package</option>'+(result.packages||[]).filter(x=>x.enabled).map(x=>`<option value="${esc(x.packageId)}">${esc(x.name)} · ${daysLabel(x.durationDays)} · ${esc(quotaLabel(x.dataGB))} · ${moneyLKR(x.priceLKR)} · Inbound #${Number(x.inboundId)}</option>`).join('');
+    $('packageCount').textContent=(result.packages||[]).length;
+    $('serviceCount').textContent=(result.services||[]).filter(x=>x.enabled).length;
+    $('pendingCount').textContent=(result.payments||[]).filter(x=>['PENDING','FAILED','PROCESSING'].includes(String(x.status).toUpperCase())).length+(result.newOrders||[]).filter(x=>String(x.status).toUpperCase()==='PENDING').length+(result.walletTopups||[]).filter(x=>['PENDING','PROCESSING'].includes(String(x.status).toUpperCase())).length;
+    $('inboundCount').textContent=active.length;
+    if(!active.length){
+      message('globalMessage','Admin data loaded, but 3x-ui returned no enabled inbounds. Confirm the inbound is enabled in 3x-ui, then click Refresh.','error');
+    }else{
+      message('globalMessage','Admin portal connected. '+active.length+' active 3x-ui inbound(s) loaded.','success');
+    }
+  }).withFailureHandler(err=>{
+    const detail=err&&err.message?String(err.message):'Unknown Apps Script error';
+    $('packageInbound').innerHTML='<option value="">Inbound loading failed — see message</option>';
+    $('inboundCount').textContent='!';
+    message('globalMessage','Could not load admin data: '+detail,'error');
+    console.error(detail);
+  }).adminGetPortalData(adminToken);
+}
+$('refreshBtn').onclick=loadAdminData;
+function renderServices(items){
+  if(!items.length){$('serviceList').innerHTML='<div class="empty">No services added yet.</div>';return;}
+  $('serviceList').innerHTML=items.map(item=>`<article class="item">
+    <div class="item-top"><b>${({ 'http-injector':'⇄ HTTP Injector','napsternetv':'◈ NetMod','npv-tunnel':'⌁ NPV Tunnel','v2box':'⬡ V2Box' }[item.appType]||'VPN Service')} · ${esc(item.name)}</b><span class="badge ${item.enabled?'enabled':'disabled'}">${item.enabled?'Visible':'Hidden'}</span></div>
+    <div class="price">${moneyLKR(item.priceLKR)}</div>
+    <div class="muted">${daysLabel(item.durationDays)}${Number(item.durationDays)===0?'':' validity'} · ${esc(quotaLabel(item.dataGB))} data</div>
+    <div class="actions"><button class="btn" type="button" data-edit-service="${esc(item.serviceId)}">Edit</button>${item.enabled?`<button class="btn danger" type="button" data-disable-service="${esc(item.serviceId)}">Hide</button>`:''}<button class="btn danger" type="button" data-delete-service="${esc(item.serviceId)}">Delete</button></div>
+  </article>`).join('');
+}
+function clearServiceForm(){
+  $('serviceForm').reset();$('serviceId').value='';$('serviceAppType').value='http-injector';$('serviceDays').value='30';$('serviceData').value='100';$('servicePackage').value='';$('serviceEnabled').checked=false;$('serviceSaveBtn').textContent='Save Service';$('serviceFormTitle').textContent='Add New Service';message('serviceMessage','','');
+}
+$('serviceClearBtn').onclick=clearServiceForm;
+$('servicePackage').addEventListener('change',()=>{const p=(adminData&&adminData.packages||[]).find(x=>x.packageId===$('servicePackage').value);if(p){$('servicePrice').value=p.priceLKR;$('serviceDays').value=p.durationDays;$('serviceData').value=p.dataGB;}});
+$('serviceForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const btn=$('serviceSaveBtn');btn.disabled=true;message('serviceMessage','Saving service…','');
+  const payload={serviceId:$('serviceId').value,appType:$('serviceAppType').value,name:$('serviceName').value.trim(),priceLKR:Number($('servicePrice').value),durationDays:Number($('serviceDays').value),dataGB:Number($('serviceData').value),packageId:$('servicePackage').value,orderUrl:'',enabled:$('serviceEnabled').checked};
+  google.script.run.withSuccessHandler(result=>{
+    btn.disabled=false;if(result&&result.sessionExpired){adminExpired();return;}
+    if(result&&result.ok){message('serviceMessage',result.message||'Service saved.','success');clearServiceForm();loadAdminData();}
+    else message('serviceMessage',(result&&result.error)||'Could not save service.','error');
+  }).withFailureHandler(err=>{btn.disabled=false;message('serviceMessage','Service save failed.','error');console.error(err&&err.message||err);}).adminSaveService(adminToken,payload);
+});
+$('serviceList').addEventListener('click',e=>{
+  const edit=e.target.closest('[data-edit-service]'),hide=e.target.closest('[data-disable-service]');
+  const items=adminData&&adminData.services||[];
+  if(edit){
+    const item=items.find(x=>x.serviceId===edit.dataset.editService);if(!item)return;
+    $('serviceId').value=item.serviceId;$('serviceAppType').value=item.appType||'http-injector';$('serviceName').value=item.name;
+    $('servicePrice').value=item.priceLKR;$('serviceDays').value=String(item.durationDays==null||item.durationDays===''?30:item.durationDays);$('serviceData').value=String(item.dataGB||0);$('servicePackage').value=item.packageId||'';
+    $('serviceEnabled').checked=!!item.enabled;
+    $('serviceSaveBtn').textContent='Update Service';$('serviceFormTitle').textContent='Edit Service';message('serviceMessage','Editing '+item.name+'.','');
+    showAdminPanel('services');$('serviceForm').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  if(hide){
+    const id=hide.dataset.disableService;
+    if(!confirm('Hide this service from the customer website?'))return;
+    hide.disabled=true;
+    google.script.run.withSuccessHandler(result=>{
+      if(result&&result.sessionExpired){adminExpired();return;}
+      if(result&&result.ok){message('globalMessage',result.message||'Service hidden.','success');loadAdminData();}
+      else message('globalMessage',(result&&result.error)||'Could not hide service.','error');
+    }).withFailureHandler(()=>message('globalMessage','Could not hide service.','error')).adminDisableService(adminToken,id);
+  }
+  const del=e.target.closest('[data-delete-service]');
+  if(del){const id=del.dataset.deleteService;if(!confirm('Permanently delete this service card?'))return;del.disabled=true;
+    google.script.run.withSuccessHandler(result=>{if(result&&result.sessionExpired){adminExpired();return;}if(result&&result.ok){message('globalMessage',result.message||'Service deleted.','success');loadAdminData();}else message('globalMessage',(result&&result.error)||'Could not delete service.','error');})
+      .withFailureHandler(()=>message('globalMessage','Could not delete service.','error')).adminDeleteService(adminToken,id);
+  }
+});
+function renderNewOrders(items){
+  const host=$('newOrderList');
+  if(!items.length){host.innerHTML='<div class="empty">No new customer orders yet.</div>';return;}
+  host.innerHTML=items.map(item=>{
+    const status=String(item.status||'').toLowerCase();
+    const appType=String(item.appType||'').toLowerCase();
+    const appLabels={'http-injector':'HTTP Injector','napsternetv':'NetMod','npv-tunnel':'NPV Tunnel','v2box':'V2Box'};
+    const appLabel=appLabels[appType]||'App not identified';
+    const defaultConfig=appType==='http-injector'?'FILE':'CODE';
+    const selectedConfig=String(item.configCode||'').trim()?'CODE':(item.configType||defaultConfig);
+    const canApprove=String(item.paymentMethod).toUpperCase()!=='WALLET'&&['PENDING','FAILED'].includes(String(item.status).toUpperCase());
+    return `<article class="item" data-new-order="${esc(item.requestId)}">
+      <div class="item-top"><b>${esc(item.customerName||'Customer')}</b><span class="badge ${esc(status)}">${esc(item.status)}</span></div>
+      <div class="muted"><b>${esc(item.websiteEmail)}</b> · ${esc(item.packageName)} · ${daysLabel(item.durationDays)} · ${esc(quotaLabel(item.dataGB))}</div>
+      <div class="muted"><b>VPN App:</b> ${esc(appLabel)}</div>
+      <div class="muted">Payment: ${esc(String(item.paymentMethod).toUpperCase()==='WALLET'?'Wallet':'Slip · '+item.paymentMethod)} · ${dateLabel(item.createdAt)}</div>
+      <div class="price">${moneyLKR(item.priceLKR)}</div>
+      ${item.slipUrl?`<a class="file" href="${esc(item.slipUrl)}" target="_blank" rel="noopener">View payment slip ↗ (${esc(item.slipFileName)})</a>`:''}
+      ${canApprove?`<div class="actions"><button class="btn good" type="button" data-approve-new-order="${esc(item.requestId)}">${String(item.status).toUpperCase()==='FAILED'?'Retry VPS Client Creation':'Approve &amp; Create VPS Client'}</button>${String(item.status).toUpperCase()==='PENDING'?`<button class="btn danger" type="button" data-reject-new-order="${esc(item.requestId)}">Reject</button>`:''}</div>`:''}
+      ${String(item.status).toUpperCase()==='APPROVED'?`<div class="muted" style="margin-top:10px">VPS client created. Attach the app configuration for this customer:</div>
+        <div class="field"><label>Delivery type</label><select data-order-config-type><option value="${selectedConfig}">${selectedConfig==='FILE'?'Config file':'Config code'}</option><option value="FILE">Config file (HTTP Injector)</option><option value="CODE">Config code (other apps)</option></select></div>
+        <div class="field" data-order-code-wrap><label>Configuration code</label><textarea data-order-config-code rows="4" placeholder="Paste the customer's config code">${esc(item.configCode||'')}</textarea></div>
+        <div class="field" data-order-file-wrap><label>Configuration file</label><input data-order-config-file type="file" accept=".ehi,.zip,.txt,.json,application/octet-stream,application/zip,text/plain,application/json"></div>
+        <div class="actions"><button class="btn primary" type="button" data-save-order-config="${esc(item.requestId)}">Save &amp; Send to Customer</button></div>
+        <div class="muted">${item.hasConfig?'A configuration has already been attached. Saving again replaces it.':'No configuration attached yet.'}</div>`:''}
+      <div class="actions"><button class="btn danger" type="button" data-delete-new-order="${esc(item.requestId)}">Delete Order</button></div>
+    </article>`;
+  }).join('');
+  host.querySelectorAll('[data-order-config-type]').forEach(sel=>{const sync=()=>{const card=sel.closest('[data-new-order]');card.querySelector('[data-order-code-wrap]').hidden=sel.value!=='CODE';card.querySelector('[data-order-file-wrap]').hidden=sel.value!=='FILE';};sel.addEventListener('change',sync);sync();});
+}
+$('newOrderList').addEventListener('input',e=>{if(e.target.matches('[data-order-config-code]'))e.target.dataset.dirty='1';});
+$('newOrderList').addEventListener('change',e=>{if(e.target.matches('[data-order-config-file]'))e.target.dataset.dirty='1';});
+$('newOrderList').addEventListener('click',e=>{
+  const del=e.target.closest('[data-delete-new-order]');
+  if(del){
+    const requestId=del.dataset.deleteNewOrder;
+    if(!confirm('Permanently delete this New Order record? The customer will no longer see it.'))return;
+    del.disabled=true;del.textContent='Deleting…';
+    google.script.run.withSuccessHandler(r=>{if(r&&r.sessionExpired){adminExpired();return;}message('globalMessage',(r&&r.message)||(r&&r.error)||'Could not delete order.',r&&r.ok?'success':'error');if(r&&r.ok)loadAdminData();else{del.disabled=false;del.textContent='Delete Order';}})
+      .withFailureHandler(err=>{del.disabled=false;del.textContent='Delete Order';message('globalMessage','Could not delete order: '+(err&&err.message||'unknown error'),'error');})
+      .adminDeleteNewOrder(adminToken,requestId);
+    return;
+  }
+  const approve=e.target.closest('[data-approve-new-order]'),reject=e.target.closest('[data-reject-new-order]'),save=e.target.closest('[data-save-order-config]');
+  if(approve||reject){const id=(approve||reject).dataset[approve?'approveNewOrder':'rejectNewOrder'];const action=approve?'approve':'reject';if(!confirm(approve?'Approve this new order and create the 3x-ui client?':'Reject this new order payment?'))return;
+    google.script.run.withSuccessHandler(r=>{if(r&&r.sessionExpired){adminExpired();return;}message('globalMessage',(r&&r.message)||(r&&r.error)||'Order review failed.',r&&r.ok?'success':'error');loadAdminData();}).withFailureHandler(()=>{message('globalMessage','Could not review new order.','error');loadAdminData();}).adminReviewPayment({adminToken,requestId:id,action});return;}
+  if(save){const card=save.closest('[data-new-order]'),type=card.querySelector('[data-order-config-type]').value,code=card.querySelector('[data-order-config-code]').value.trim(),file=card.querySelector('[data-order-config-file]').files[0];
+    const send=payload=>{save.disabled=true;google.script.run.withSuccessHandler(r=>{save.disabled=false;message('globalMessage',(r&&r.message)||(r&&r.error)||'Could not save configuration.',r&&r.ok?'success':'error');loadAdminData();}).withFailureHandler(()=>{save.disabled=false;message('globalMessage','Could not save configuration.','error');}).adminSaveOrderDelivery(Object.assign({adminToken,requestId:save.dataset.saveOrderConfig,configType:type},payload));};
+    if(type==='CODE'){if(!code){message('globalMessage','Enter the config code.','error');return;}send({configCode:code});}
+    else{if(!file){message('globalMessage','Choose the config file.','error');return;}if(file.size>5*1024*1024){message('globalMessage','Config file maximum is 5 MB.','error');return;}const reader=new FileReader();reader.onload=()=>send({file:{name:file.name,mimeType:file.type||'application/octet-stream',base64:String(reader.result||'').split(',')[1]||''}});reader.readAsDataURL(file);}
+  }
+});
+
+function renderWalletTopups(items){
+  if(!items.length){$('walletTopupList').innerHTML='<div class="empty">No wallet top-up requests waiting for review.</div>';return;}
+  $('walletTopupList').innerHTML=items.map(item=>`<article class="item"><div class="item-top"><b>${esc(item.customerName||item.websiteEmail)}</b><span class="badge pending">${esc(item.status)}</span></div><div class="muted">${esc(item.websiteEmail)} · ${esc(item.paymentMethod==='EZ_CASH'?'EZ Cash':'Bank Transfer')}</div><div class="price">${moneyLKR(item.amountLKR)}</div><div class="muted">Request: ${esc(item.requestId)} · ${esc(dateLabel(item.createdAt))}</div>${item.customerNote?`<p class="muted" style="margin-top:8px">Customer note: ${esc(item.customerNote)}</p>`:''}${item.slipUrl?`<a class="file" href="${esc(item.slipUrl)}" target="_blank" rel="noopener">View payment slip ↗ (${esc(item.slipFileName)})</a>`:''}<div class="actions"><button class="btn good" type="button" data-approve-topup="${esc(item.requestId)}">Approve &amp; Credit Wallet</button><button class="btn danger" type="button" data-reject-topup="${esc(item.requestId)}">Reject</button></div></article>`).join('');
+}
+$('walletPaymentSettingsForm').addEventListener('submit',e=>{
+  e.preventDefault();const btn=$('walletSettingsSaveBtn');btn.disabled=true;message('walletSettingsMessage','Saving payment details…','');
+  const payload={adminToken:adminToken,bankName:$('walletBankName').value,accountName:$('walletBankAccountName').value,accountNumber:$('walletBankAccountNumber').value,branch:$('walletBankBranch').value,ezName:$('walletEzName').value,ezNumber:$('walletEzNumber').value};
+  google.script.run.withSuccessHandler(r=>{btn.disabled=false;if(r&&r.sessionExpired){adminExpired();return;}message('walletSettingsMessage',(r&&r.message)||(r&&r.error)||'Could not save details.',r&&r.ok?'success':'error');}).withFailureHandler(()=>{btn.disabled=false;message('walletSettingsMessage','Could not save payment details.','error');}).adminSaveWalletPaymentSettings(payload);
+});
+$('walletTopupList').addEventListener('click',e=>{
+  const approve=e.target.closest('[data-approve-topup]'),reject=e.target.closest('[data-reject-topup]');if(!approve&&!reject)return;
+  const btn=approve||reject,action=approve?'approve':'reject',requestId=btn.dataset[approve?'approveTopup':'rejectTopup'];
+  if(!confirm(action==='approve'?'Verify the slip and credit this amount to the customer wallet?':'Reject this wallet top-up request?'))return;
+  const note=prompt('Admin note (optional):','')||'';btn.disabled=true;btn.textContent=action==='approve'?'Crediting…':'Rejecting…';
+  google.script.run.withSuccessHandler(r=>{if(r&&r.sessionExpired){adminExpired();return;}message('globalMessage',(r&&r.message)||(r&&r.error)||'Review failed.',r&&r.ok?'success':'error');loadAdminData();}).withFailureHandler(()=>{message('globalMessage','Could not review wallet top-up.','error');loadAdminData();}).adminReviewWalletTopup({adminToken:adminToken,requestId:requestId,action:action,note:note});
+});
+$('walletCreditForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const btn=$('walletCreditBtn');btn.disabled=true;message('walletCreditMessage','Adding wallet credit…','');
+  const payload={adminToken:adminToken,websiteEmail:$('walletEmail').value.trim(),amountLKR:Number($('walletAmount').value),note:$('walletNote').value.trim()};
+  google.script.run.withSuccessHandler(result=>{
+    btn.disabled=false;
+    if(result&&result.sessionExpired){adminExpired();return;}
+    if(result&&result.ok){message('walletCreditMessage',result.message||'Wallet credited.','success');$('walletCreditForm').reset();}
+    else message('walletCreditMessage',(result&&result.error)||'Could not add wallet credit.','error');
+  }).withFailureHandler(err=>{btn.disabled=false;message('walletCreditMessage','Wallet credit request failed.','error');console.error(err&&err.message||err);}).adminCreditWallet(payload);
+});
+
+function loadNotificationCustomers(){
+  if(!adminToken)return;
+  $('notificationCustomer').innerHTML='<option value="">Loading customers…</option>';
+  google.script.run.withSuccessHandler(result=>{
+    if(result&&result.sessionExpired){adminExpired();return;}
+    if(!result||!result.ok){$('notificationCustomer').innerHTML='<option value="">Could not load customers</option>';message('customerNotificationMessage',(result&&result.error)||'Could not load customers.','error');return;}
+    const customers=result.customers||[];
+    $('notificationCustomer').innerHTML='<option value="">Choose a customer account</option>'+customers.map(c=>`<option value="${esc(c.email)}">${esc(c.name)} · ${esc(c.email)}</option>`).join('');
+    if(!customers.length)$('notificationCustomer').innerHTML='<option value="">No customer accounts found</option>';
+  }).withFailureHandler(()=>{$('notificationCustomer').innerHTML='<option value="">Could not load customers</option>';message('customerNotificationMessage','Could not load customers.','error');}).adminGetNotificationCustomers(adminToken);
+}
+$('customerNotificationForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const btn=$('sendCustomerNotificationBtn');
+  const payload={adminToken:adminToken,websiteEmail:$('notificationCustomer').value,title:$('notificationTitle').value.trim(),message:$('notificationMessage').value.trim()};
+  if(!payload.websiteEmail){message('customerNotificationMessage','Choose a customer account.','error');return;}
+  btn.disabled=true;message('customerNotificationMessage','Sending notification…','');
+  google.script.run.withSuccessHandler(result=>{
+    btn.disabled=false;
+    if(result&&result.sessionExpired){adminExpired();return;}
+    if(result&&result.ok){message('customerNotificationMessage',result.message||'Notification sent.','success');$('notificationTitle').value='';$('notificationMessage').value='';}
+    else message('customerNotificationMessage',(result&&result.error)||'Could not send notification.','error');
+  }).withFailureHandler(()=>{btn.disabled=false;message('customerNotificationMessage','Could not send notification.','error');}).adminSendCustomerNotification(payload);
+});
+
+$('logoutBtn').onclick=()=>{const token=adminToken;stopNewOrderPolling();adminToken='';adminData=null;setNewOrdersBadge(0);setSignedIn(false);if(inGAS)google.script.run.adminLogout(token);message('loginMessage','You have signed out of the admin panel.','success');};
+function renderPackages(items){
+  if(!items.length){$('packageList').innerHTML='<div class="empty">No packages configured yet. Add a package above.</div>';return;}
+  $('packageList').innerHTML=items.map(pkg=>{
+    const enabled=!!pkg.enabled;
+    return `<article class="item"><div class="item-top"><b>${esc(pkg.name)}</b><span class="badge ${enabled?'enabled':'disabled'}">${enabled?'Enabled':'Disabled'}</span></div><div class="price">${moneyLKR(pkg.priceLKR)}</div><div class="muted">${daysLabel(pkg.durationDays)} · ${esc(quotaLabel(pkg.dataGB))} · Inbound #${Number(pkg.inboundId)||'—'}</div><div class="muted">${esc(pkg.features||'No extra features')}</div><div class="actions"><button class="btn" type="button" data-edit-package="${esc(pkg.packageId)}">Edit</button>${enabled?`<button class="btn danger" type="button" data-disable-package="${esc(pkg.packageId)}">Disable</button>`:''}</div></article>`;
+  }).join('');
+}
+function renderPayments(items){
+  if(!items.length){$('paymentList').innerHTML='<div class="empty">No payment requests waiting for review.</div>';return;}
+  $('paymentList').innerHTML=items.map(item=>{
+    const status=String(item.status||'').toLowerCase();
+    const state=String(item.status||'').toUpperCase();
+    const actions=['PENDING','FAILED','PROCESSING'].includes(state);
+    return `<article class="item"><div class="item-top"><b>${esc(item.customerName||item.websiteEmail)}</b><span class="badge ${esc(status)}">${esc(item.status)}</span></div><div class="muted">${esc(item.websiteEmail)} · ${esc(item.requestType)}</div><div class="muted">${esc(item.packageName)} · ${daysLabel(item.durationDays)} · ${esc(quotaLabel(item.dataGB))}</div><div class="muted">Payment method: ${esc(item.paymentMethod==='EZ_CASH'?'EZ Cash':item.paymentMethod==='BANK_TRANSFER'?'Bank Transfer':item.paymentMethod||'Slip')}</div><div class="price">${moneyLKR(item.priceLKR)}</div><div class="muted">Request: ${esc(item.requestId)} · ${esc(dateLabel(item.createdAt))}</div>${item.slipUrl?`<a class="file" href="${esc(item.slipUrl)}" target="_blank" rel="noopener">View payment slip ↗ (${esc(item.slipFileName)})</a>`:''}${item.adminNote?`<p class="muted" style="margin-top:8px">${esc(item.adminNote)}</p>`:''}${actions?`<div class="actions"><button class="btn good" type="button" data-approve-payment="${esc(item.requestId)}">${state==='PENDING'?'Approve &amp; Apply to VPS':'Retry &amp; Reconcile VPS'}</button>${state==='PENDING'?`<button class="btn danger" type="button" data-reject-payment="${esc(item.requestId)}">Reject</button>`:''}</div>`:''}</article>`;
+  }).join('');
+}
+function clearPackageForm(){
+  $('packageForm').reset();$('packageId').value='';$('packageDays').value='30';$('packageData').value='50';$('packageEnabled').checked=false;$('packageSaveBtn').textContent='Save Package';message('packageMessage','','');
+}
+$('packageClearBtn').onclick=clearPackageForm;
+$('packageForm').addEventListener('submit',e=>{
+  e.preventDefault();const btn=$('packageSaveBtn');btn.disabled=true;message('packageMessage','Saving package…','');
+  const payload={packageId:$('packageId').value,name:$('packageName').value.trim(),durationDays:Number($('packageDays').value),dataGB:Number($('packageData').value),priceLKR:Number($('packagePrice').value),inboundId:Number($('packageInbound').value),features:$('packageFeatures').value,enabled:$('packageEnabled').checked};
+  google.script.run.withSuccessHandler(result=>{
+    btn.disabled=false;if(result&&result.sessionExpired){adminExpired();return;}
+    if(result&&result.ok){message('packageMessage',result.message||'Package saved.','success');clearPackageForm();loadAdminData();}
+    else message('packageMessage',(result&&result.error)||'Could not save package.','error');
+  }).withFailureHandler(err=>{btn.disabled=false;message('packageMessage','Package save failed.','error');console.error(err&&err.message||err);}).adminSavePackage(adminToken,payload);
+});
+$('packageList').addEventListener('click',e=>{
+  const edit=e.target.closest('[data-edit-package]');const disable=e.target.closest('[data-disable-package]');
+  const packages=adminData&&adminData.packages||[];
+  if(edit){const pkg=packages.find(x=>x.packageId===edit.dataset.editPackage);if(!pkg)return;
+    $('packageId').value=pkg.packageId;$('packageName').value=pkg.name;$('packagePrice').value=pkg.priceLKR;$('packageDays').value=String(pkg.durationDays);$('packageData').value=String(pkg.dataGB);$('packageInbound').value=String(pkg.inboundId);$('packageFeatures').value=pkg.features||'';$('packageEnabled').checked=!!pkg.enabled;$('packageSaveBtn').textContent='Update Package';message('packageMessage','Editing '+pkg.name+'.','');showAdminPanel('packages');$('packageForm').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  if(disable){const id=disable.dataset.disablePackage;if(!confirm('Disable this package for new customer requests? Existing customer history remains unchanged.'))return;disable.disabled=true;
+    google.script.run.withSuccessHandler(result=>{if(result&&result.sessionExpired){adminExpired();return;}if(result&&result.ok)loadAdminData();else message('globalMessage',(result&&result.error)||'Could not disable package.','error');}).withFailureHandler(()=>message('globalMessage','Could not disable package.','error')).adminDisablePackage(adminToken,id);
+  }
+});
+$('paymentList').addEventListener('click',e=>{
+  const approve=e.target.closest('[data-approve-payment]');const reject=e.target.closest('[data-reject-payment]');if(!approve&&!reject)return;
+  const requestId=(approve||reject).dataset[approve?'approvePayment':'rejectPayment'];const action=approve?'approve':'reject';
+  if(action==='approve'&&!confirm('Approve this payment and create or renew the matching 3x-ui client?'))return;
+  if(action==='reject'&&!confirm('Reject this payment request?'))return;
+  const note=prompt('Admin note (optional):','')||'';const btn=approve||reject;btn.disabled=true;btn.textContent=action==='approve'?'Applying to VPS…':'Rejecting…';
+  google.script.run.withSuccessHandler(result=>{if(result&&result.sessionExpired){adminExpired();return;}if(result&&result.ok){message('globalMessage',result.message||'Payment reviewed.','success');loadAdminData();}else{message('globalMessage',(result&&result.error)||'Payment review failed.','error');loadAdminData();}})
+    .withFailureHandler(err=>{message('globalMessage','Could not complete payment review.','error');console.error(err&&err.message||err);loadAdminData();})
+    .adminReviewPayment({adminToken:adminToken,requestId:requestId,action:action,note:note});
+});
+</script>
+</body>
+</html>
