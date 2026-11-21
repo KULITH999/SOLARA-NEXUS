@@ -2220,6 +2220,72 @@ function getCustomerOrderFilePayload(requestId, sessionToken) {
   }
 }
 
+/**
+ * Small-chunk customer file download API. This avoids sending a large Base64
+ * response through one google.script.run call, which can leave the browser
+ * waiting for larger Drive files.
+ */
+const CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES = 192 * 1024; // divisible by 3 for safe Base64 concatenation
+
+function getCustomerOrderFileMeta(requestId, sessionToken) {
+  try {
+    const checked = getCustomerOrderFileForDownload_(requestId, sessionToken);
+    if (!checked.ok) return checked;
+    const bytes = checked.blob.getBytes();
+    if (!bytes || !bytes.length) return {ok:false,error:'The configuration file is empty.'};
+    if (bytes.length > PAYMENT_FILE_MAX_BYTES) return {ok:false,error:'The configuration file exceeds the 5 MB download limit.'};
+    return {
+      ok:true,
+      fileName:checked.fileName,
+      mimeType:String(checked.blob.getContentType() || 'application/octet-stream'),
+      totalBytes:bytes.length,
+      chunkSize:CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES,
+      totalChunks:Math.ceil(bytes.length / CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES)
+    };
+  } catch (err) {
+    console.error('getCustomerOrderFileMeta error: ' + err.message);
+    return {ok:false,error:err.message || 'Could not prepare the configuration file.'};
+  }
+}
+
+function getCustomerOrderFileChunk(requestId, sessionToken, chunkIndex) {
+  try {
+    const checked = getCustomerOrderFileForDownload_(requestId, sessionToken);
+    if (!checked.ok) return checked;
+    const bytes = checked.blob.getBytes();
+    if (!bytes || !bytes.length) return {ok:false,error:'The configuration file is empty.'};
+    if (bytes.length > PAYMENT_FILE_MAX_BYTES) return {ok:false,error:'The configuration file exceeds the 5 MB download limit.'};
+    const index = Number(chunkIndex);
+    const totalChunks = Math.ceil(bytes.length / CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES);
+    if (!Number.isInteger(index) || index < 0 || index >= totalChunks) return {ok:false,error:'Invalid download part.'};
+    const start = index * CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES;
+    const part = bytes.slice(start, Math.min(start + CUSTOMER_ORDER_DOWNLOAD_CHUNK_BYTES, bytes.length));
+    return {ok:true,index:index,base64:Utilities.base64Encode(part)};
+  } catch (err) {
+    console.error('getCustomerOrderFileChunk error: ' + err.message);
+    return {ok:false,error:err.message || 'Could not download this part of the configuration file.'};
+  }
+}
+
+function getCustomerOrderFileForDownload_(requestId, sessionToken) {
+  const session = getCustomerSession_(String(sessionToken || ''));
+  if (!session) return {ok:false,error:'Your session has expired. Please sign in again.'};
+  const sheet = ensureHeaders_(PAYMENTS_SHEET, PAYMENTS_HEADERS);
+  const found = findPaymentRequest_(sheet, String(requestId || '').trim());
+  if (!found) return {ok:false,error:'Order not found.'};
+  const idx = found.index, row = found.row;
+  if (String(row[idx.WebsiteEmail] || '').trim().toLowerCase() !== session.email || !/^NEW ORDER/i.test(String(row[idx.RequestType] || ''))) {
+    return {ok:false,error:'Access denied. This configuration belongs to a different account.'};
+  }
+  if (String(row[idx.Status] || '').toUpperCase() !== 'APPROVED') return {ok:false,error:'This order has not been approved yet.'};
+  const fileId = String(idx.ConfigFileId != null ? row[idx.ConfigFileId] || '' : '').trim();
+  if (!fileId) return {ok:false,error:'No configuration file is attached to this order.'};
+  const driveFile = DriveApp.getFileById(fileId);
+  const blob = driveFile.getBlob();
+  const fileName = String(idx.ConfigFileName != null ? row[idx.ConfigFileName] || driveFile.getName() : driveFile.getName());
+  return {ok:true,blob:blob,fileName:fileName};
+}
+
 function adminSaveOrderDelivery(data) {
   const lock=LockService.getScriptLock();
   try {
