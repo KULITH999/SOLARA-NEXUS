@@ -1168,6 +1168,7 @@ addEventListener('hashchange',route);
 
 function logout(){
   stopCustomerOrdersPolling();
+  stopCustomerOrderBadgePolling();
   stopCustomerNotificationsPolling();
   customerNotificationKnownIds=null;
   const current=getSession();
@@ -1447,18 +1448,29 @@ function orderSeenStorageKey(){
 function getSeenOrderIds(){
   try{return new Set(JSON.parse(localStorage.getItem(orderSeenStorageKey())||'[]'));}catch(e){return new Set();}
 }
+// A delivered config gets its own seen marker. This lets a newly attached or
+// replaced code/file trigger a fresh badge even if the customer viewed the order earlier.
+function customerOrderSeenMarker(order){
+  const requestId=String(order&&order.requestId||'');
+  const deliveryKey=String(order&&order.deliveryKey||'');
+  return deliveryKey?requestId+'|delivery|'+deliveryKey:requestId;
+}
 function updateCustomerOrderBadge(orders){
   const seen=getSeenOrderIds();
-  const unread=(Array.isArray(orders)?orders:[]).filter(o=>o&&o.requestId&&!seen.has(String(o.requestId))).length;
+  const unread=(Array.isArray(orders)?orders:[]).filter(o=>{
+    if(!o||!o.requestId)return false;
+    return !seen.has(customerOrderSeenMarker(o));
+  }).length;
   setSidebarBadge('sbOrders',unread);
 }
 function markCustomerOrdersSeen(orders){
   const seen=getSeenOrderIds();
-  (Array.isArray(orders)?orders:[]).forEach(o=>{if(o&&o.requestId)seen.add(String(o.requestId));});
-  try{localStorage.setItem(orderSeenStorageKey(),JSON.stringify(Array.from(seen).slice(-200)));}catch(e){}
+  (Array.isArray(orders)?orders:[]).forEach(o=>{if(o&&o.requestId)seen.add(customerOrderSeenMarker(o));});
+  try{localStorage.setItem(orderSeenStorageKey(),JSON.stringify(Array.from(seen).slice(-300)));}catch(e){}
   setSidebarBadge('sbOrders',0);
 }
 let orderBadgeBusy=false;
+let customerOrderBadgePollTimer=null;
 function refreshCustomerOrderBadge(){
   const session=getSession();
   if(!session||!session.token||!inGAS||orderBadgeBusy)return;
@@ -1468,6 +1480,16 @@ function refreshCustomerOrderBadge(){
     if(r&&r.sessionExpired){setSession(null);showAuth('signin');return;}
     if(r&&r.ok)updateCustomerOrderBadge(r.orders||[]);
   }).withFailureHandler(()=>{orderBadgeBusy=false;}).getCustomerOrders(session.token);
+}
+function startCustomerOrderBadgePolling(){
+  if(customerOrderBadgePollTimer)clearInterval(customerOrderBadgePollTimer);
+  refreshCustomerOrderBadge();
+  customerOrderBadgePollTimer=setInterval(()=>{
+    if(!document.hidden&&cur==='dash')refreshCustomerOrderBadge();
+  },5000);
+}
+function stopCustomerOrderBadgePolling(){
+  if(customerOrderBadgePollTimer){clearInterval(customerOrderBadgePollTimer);customerOrderBadgePollTimer=null;}
 }
 function renderDashboardClientSwitcher(clients, selectedId){
   const host=$('clientSwitcher');
@@ -1596,7 +1618,7 @@ function renderDash(session){
   $('srvList').innerHTML='<div class="sempty">Loading your assigned services…</div>';
   setPane('dashboard');
   loadLiveVpn(true);
-  refreshCustomerOrderBadge();
+  startCustomerOrderBadgePolling();
   if(inGAS){
     google.script.run.withSuccessHandler(result=>{
       if(result&&result.sessionExpired){setSession(null);showAuth('signin');return;}
