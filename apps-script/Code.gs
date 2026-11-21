@@ -2130,11 +2130,18 @@ function getCustomerOrders(sessionToken) {
         if (String(r[idx.WebsiteEmail]||'').toLowerCase()!==session.email || !/^NEW ORDER/i.test(String(r[idx.RequestType]||''))) continue;
         const status=String(r[idx.Status]||'').toUpperCase();
         const fileId=String(idx.ConfigFileId!=null?r[idx.ConfigFileId]||'':'');
+        const configType=String(idx.ConfigType!=null?r[idx.ConfigType]||'':'');
+        const configCode=String(idx.ConfigValue!=null?r[idx.ConfigValue]||'':'');
+        const configFileName=status==='APPROVED'?String(idx.ConfigFileName!=null?r[idx.ConfigFileName]||'':''):'';
         const requestId=String(r[idx.RequestId]||'');
+        const hasDelivery=status==='APPROVED'&&((configType.toUpperCase()==='CODE'&&!!configCode.trim())||(configType.toUpperCase()==='FILE'&&!!fileId));
+        const deliveryKey=hasDelivery
+          ? Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,requestId+'|'+configType+'|'+configCode+'|'+fileId+'|'+configFileName)).replace(/=+$/,'')
+          : '';
         const fileUrl=status==='APPROVED'&&fileId&&webAppUrl
           ? webAppUrl+'?downloadOrderFile='+encodeURIComponent(requestId)+'&token='+encodeURIComponent(String(sessionToken||''))
           : '';
-        orders.push({requestId:requestId,createdAt:r[idx.CreatedAt] instanceof Date?r[idx.CreatedAt].toISOString():String(r[idx.CreatedAt]||''),packageName:String(r[idx.PackageName]||''),priceLKR:Number(r[idx.PriceLKR]||0),status:status,configType:String(idx.ConfigType!=null?r[idx.ConfigType]||'':''),configCode:String(idx.ConfigValue!=null?r[idx.ConfigValue]||'':''),configFileName:status==='APPROVED'?String(idx.ConfigFileName!=null?r[idx.ConfigFileName]||'':'' ):'',configFileUrl:fileUrl,clientName:String(r[idx.VpsClientEmail]||'')});
+        orders.push({requestId:requestId,createdAt:r[idx.CreatedAt] instanceof Date?r[idx.CreatedAt].toISOString():String(r[idx.CreatedAt]||''),packageName:String(r[idx.PackageName]||''),priceLKR:Number(r[idx.PriceLKR]||0),status:status,configType:configType,configCode:configCode,configFileName:configFileName,configFileUrl:fileUrl,clientName:String(r[idx.VpsClientEmail]||''),deliveryKey:deliveryKey});
       }
     }
     return {ok:true,orders:orders};
