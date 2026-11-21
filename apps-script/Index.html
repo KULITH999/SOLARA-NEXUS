@@ -1733,7 +1733,7 @@ function loadCustomerOrders(silent){
     if(!orders.length){$('customerOrdersList').innerHTML='<div class="sempty">You have not placed a new order yet.</div>';markCustomerOrdersSeen(orders);return;}
     $('customerOrdersList').innerHTML=orders.map(o=>{
       const ready=String(o.status).toUpperCase()==='APPROVED';
-      const delivery=o.configCode?`<div class="portal-field"><label>VPN configuration code</label><textarea readonly rows="5" id="order-code-${esc(o.requestId)}">${esc(o.configCode)}</textarea><button type="button" class="portal-btn" data-copy-order-code="${esc(o.requestId)}">Copy Config Code</button></div>`:o.configFileUrl?`<a class="portal-btn primary" href="${esc(o.configFileUrl)}" target="_blank" rel="noopener">Download ${esc(o.configFileName||'Config file')}</a>`:`<div class="portal-muted">${String(o.status).toUpperCase()==='REJECTED'?'This order was rejected. Please contact support if you need help.':ready?'Your payment is confirmed. The admin will attach your VPN configuration here shortly.':'Your order is waiting for admin payment approval. Your VPN client will be created after approval.'}</div>`;
+      const delivery=o.configCode?`<div class="portal-field"><label>VPN configuration code</label><textarea readonly rows="5" id="order-code-${esc(o.requestId)}">${esc(o.configCode)}</textarea><button type="button" class="portal-btn" data-copy-order-code="${esc(o.requestId)}">Copy Config Code</button></div>`:o.configFileUrl?`<button type="button" class="portal-btn primary" data-download-order-file="${esc(o.requestId)}">Download ${esc(o.configFileName||'Config file')}</button>`:`<div class="portal-muted">${String(o.status).toUpperCase()==='REJECTED'?'This order was rejected. Please contact support if you need help.':ready?'Your payment is confirmed. The admin will attach your VPN configuration here shortly.':'Your order is waiting for admin payment approval. Your VPN client will be created after approval.'}</div>`;
       return `<article class="portal-card"><div class="portal-row"><b>${esc(o.packageName||'VPN Package')}</b><span class="portal-badge ${ready?'approved':'pending'}">${esc(o.status)}</span></div><div class="portal-muted">Order ${esc(o.requestId)} · ${esc(dateLabel(o.createdAt))} · ${moneyLKR(o.priceLKR)}</div>${o.clientName?`<div class="portal-muted">VPN client: ${esc(o.clientName)}</div>`:''}<div style="margin-top:12px">${delivery}</div><div class="portal-actions" style="display:flex;justify-content:flex-end;margin-top:12px"><button type="button" class="portal-btn reject" data-delete-customer-order="${esc(o.requestId)}">Delete Order</button></div></article>`;
     }).join('');
     markCustomerOrdersSeen(orders);
@@ -1754,6 +1754,35 @@ function startCustomerOrdersPolling(){
 }
 function stopCustomerOrdersPolling(){if(customerOrdersPollTimer){clearInterval(customerOrdersPollTimer);customerOrdersPollTimer=null;}}
 $('customerOrdersList').addEventListener('click',e=>{
+  const downloadBtn=e.target.closest('[data-download-order-file]');
+  if(downloadBtn){
+    const requestId=downloadBtn.dataset.downloadOrderFile;
+    const session=getSession();
+    if(!session||!session.token){showAuth('signin');return;}
+    downloadBtn.disabled=true;
+    const originalText=downloadBtn.textContent;
+    downloadBtn.textContent='Preparing download…';
+    google.script.run.withSuccessHandler(fileData=>{
+      try{
+        if(!fileData||!fileData.ok||!fileData.base64)throw new Error(fileData&&fileData.error?fileData.error:'File data is missing.');
+        const raw=atob(fileData.base64),bytes=new Uint8Array(raw.length);
+        for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+        const blob=new Blob([bytes],{type:fileData.mimeType||'application/octet-stream'});
+        const url=URL.createObjectURL(blob),a=document.createElement('a');
+        a.href=url;a.download=fileData.fileName||'configuration.bin';
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),60000);
+        portalMessage('paymentSubmitMessage','Download started. Check your browser downloads.','success');
+      }catch(err){
+        portalMessage('paymentSubmitMessage','Download failed: '+(err&&err.message||'Please try again.'),'error');
+      }
+      downloadBtn.disabled=false;downloadBtn.textContent=originalText;
+    }).withFailureHandler(err=>{
+      portalMessage('paymentSubmitMessage','Download failed: '+(err&&err.message||'Please try again.'),'error');
+      downloadBtn.disabled=false;downloadBtn.textContent=originalText;
+    }).getCustomerOrderFilePayload(requestId,session.token);
+    return;
+  }
   const del=e.target.closest('[data-delete-customer-order]');
   if(del){
     const requestId=del.dataset.deleteCustomerOrder;
