@@ -2158,10 +2158,11 @@ function renderCustomerOrderFileDownload_(requestId, sessionToken) {
     const session = getCustomerSession_(sessionToken);
     if (!session) return HtmlService.createHtmlOutput('<h3>Session expired</h3><p>Please sign in to Solara Nexus and open Orders again.</p>');
 
+    // Validate the order before displaying the download page. The file bytes are
+    // fetched only after the customer presses the download button.
     const sheet = ensureHeaders_(PAYMENTS_SHEET, PAYMENTS_HEADERS);
     const found = findPaymentRequest_(sheet, requestId);
     if (!found) return HtmlService.createHtmlOutput('<h3>Order not found</h3><p>This download link is not valid.</p>');
-
     const idx = found.index, row = found.row;
     if (String(row[idx.WebsiteEmail] || '').trim().toLowerCase() !== session.email || !/^NEW ORDER/i.test(String(row[idx.RequestType] || ''))) {
       return HtmlService.createHtmlOutput('<h3>Access denied</h3><p>This configuration belongs to a different account.</p>');
@@ -2172,21 +2173,50 @@ function renderCustomerOrderFileDownload_(requestId, sessionToken) {
     const fileId = String(idx.ConfigFileId != null ? row[idx.ConfigFileId] || '' : '').trim();
     if (!fileId) return HtmlService.createHtmlOutput('<h3>File not found</h3><p>No configuration file is attached to this order.</p>');
 
-    const driveFile = DriveApp.getFileById(fileId);
-    const blob = driveFile.getBlob();
-    const payload = {
-      base64: Utilities.base64Encode(blob.getBytes()),
-      mimeType: String(blob.getContentType() || 'application/octet-stream'),
-      fileName: String(idx.ConfigFileName != null ? row[idx.ConfigFileName] || driveFile.getName() : driveFile.getName())
-    };
-    const payloadJson = JSON.stringify(payload).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
-    const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Downloading configuration</title>' +
-      '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#03040a;color:#e8f1ff;font:16px Arial,sans-serif}.box{max-width:440px;margin:24px;padding:30px;border:1px solid #164d75;border-radius:18px;background:#0a1228;text-align:center}button{border:0;border-radius:10px;padding:13px 22px;background:linear-gradient(135deg,#00b3ff,#2f6bff);color:#00101f;font-weight:700;cursor:pointer}</style></head><body><div class="box"><h2>Solara Nexus</h2><p>Your original configuration file is ready.</p><button id="downloadBtn" type="button">Download file</button><p id="status">Starting download…</p></div>' +
-      '<script>const fileData=' + payloadJson + ';let preparedUrl=null;function downloadOriginal(){try{if(!fileData||!fileData.base64)throw new Error("File data is missing");const raw=atob(fileData.base64);const bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const blob=new Blob([bytes],{type:fileData.mimeType||"application/octet-stream"});if(preparedUrl)URL.revokeObjectURL(preparedUrl);preparedUrl=URL.createObjectURL(blob);const a=document.createElement("a");a.href=preparedUrl;a.download=fileData.fileName||"configuration.bin";a.style.display="none";document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);document.getElementById("status").textContent="Download requested. Check your browser downloads. If it did not start, press the button again.";}catch(e){document.getElementById("status").textContent="Download could not start: "+(e&&e.message?e.message:"Please try again.");}}document.getElementById("downloadBtn").addEventListener("click",downloadOriginal);document.getElementById("status").textContent="Your file is ready. Press Download file to save it to your device.";</script></body></html>';
+    const safeRequestId = JSON.stringify(String(requestId)).replace(/</g, '\\u003c');
+    const safeToken = JSON.stringify(String(sessionToken)).replace(/</g, '\\u003c');
+    const html = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Solara Nexus | Download Configuration</title>' +
+      '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#03040a;color:#e8f1ff;font:16px Arial,sans-serif}.box{max-width:440px;margin:24px;padding:30px;border:1px solid #164d75;border-radius:18px;background:#0a1228;text-align:center}button{border:0;border-radius:10px;padding:13px 22px;background:linear-gradient(135deg,#00b3ff,#2f6bff);color:#00101f;font-weight:700;cursor:pointer}button:disabled{opacity:.6;cursor:wait}</style></head><body><div class="box"><h2>Solara Nexus</h2><p>Your original configuration file is ready.</p><button id="downloadBtn" type="button">Download file</button><p id="status">Press Download file to save your configuration.</p></div>' +
+      '<script>const requestId=' + safeRequestId + ',sessionToken=' + safeToken + ';const btn=document.getElementById("downloadBtn"),statusEl=document.getElementById("status");btn.addEventListener("click",function(){btn.disabled=true;statusEl.textContent="Preparing your download…";google.script.run.withSuccessHandler(function(fileData){try{if(!fileData||!fileData.ok||!fileData.base64)throw new Error(fileData&&fileData.error?fileData.error:"File data is missing");const raw=atob(fileData.base64),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const blob=new Blob([bytes],{type:fileData.mimeType||"application/octet-stream"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=fileData.fileName||"configuration.bin";document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},60000);statusEl.textContent="Download started. Check your browser downloads.";btn.disabled=false;}catch(e){statusEl.textContent="Download failed: "+(e&&e.message?e.message:"Please try again.");btn.disabled=false;}}).withFailureHandler(function(err){statusEl.textContent="Download failed: "+(err&&err.message?err.message:"Please try again.");btn.disabled=false;}).getCustomerOrderFilePayload(requestId,sessionToken);});</script></body></html>';
     return HtmlService.createHtmlOutput(html).setTitle('Solara Nexus | Download Configuration').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   } catch (err) {
     console.error('renderCustomerOrderFileDownload_ error: ' + err.message);
     return HtmlService.createHtmlOutput('<h3>Download failed</h3><p>Could not prepare this configuration file. Please contact support.</p>');
+  }
+}
+
+/**
+ * Returns an order file to its authenticated owner. Called from the download
+ * page with google.script.run so the HTML response itself stays small.
+ */
+function getCustomerOrderFilePayload(requestId, sessionToken) {
+  try {
+    const session = getCustomerSession_(String(sessionToken || ''));
+    if (!session) return {ok:false,error:'Your session has expired. Please sign in again.'};
+    const sheet = ensureHeaders_(PAYMENTS_SHEET, PAYMENTS_HEADERS);
+    const found = findPaymentRequest_(sheet, String(requestId || '').trim());
+    if (!found) return {ok:false,error:'Order not found.'};
+    const idx = found.index, row = found.row;
+    if (String(row[idx.WebsiteEmail] || '').trim().toLowerCase() !== session.email || !/^NEW ORDER/i.test(String(row[idx.RequestType] || ''))) {
+      return {ok:false,error:'Access denied. This configuration belongs to a different account.'};
+    }
+    if (String(row[idx.Status] || '').toUpperCase() !== 'APPROVED') return {ok:false,error:'This order has not been approved yet.'};
+    const fileId = String(idx.ConfigFileId != null ? row[idx.ConfigFileId] || '' : '').trim();
+    if (!fileId) return {ok:false,error:'No configuration file is attached to this order.'};
+    const driveFile = DriveApp.getFileById(fileId);
+    const blob = driveFile.getBlob();
+    const bytes = blob.getBytes();
+    if (!bytes || !bytes.length) return {ok:false,error:'The configuration file is empty.'};
+    if (bytes.length > PAYMENT_FILE_MAX_BYTES) return {ok:false,error:'The configuration file exceeds the 5 MB download limit.'};
+    return {
+      ok:true,
+      base64:Utilities.base64Encode(bytes),
+      mimeType:String(blob.getContentType() || 'application/octet-stream'),
+      fileName:String(idx.ConfigFileName != null ? row[idx.ConfigFileName] || driveFile.getName() : driveFile.getName())
+    };
+  } catch (err) {
+    console.error('getCustomerOrderFilePayload error: ' + err.message);
+    return {ok:false,error:err.message || 'Could not read the configuration file.'};
   }
 }
 
