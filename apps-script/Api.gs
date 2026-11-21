@@ -43,6 +43,8 @@ function apiFunctions_() {
     deleteExpiredCustomerClient: deleteExpiredCustomerClient,
     deleteCustomerOrder: deleteCustomerOrder,
     getCustomerOrders: getCustomerOrders,
+    getCustomerOrderFileMeta: getCustomerOrderFileMeta,
+    getCustomerOrderFileChunk: getCustomerOrderFileChunk,
     getCustomerNotifications: getCustomerNotifications,
     markCustomerNotificationsRead: markCustomerNotificationsRead,
     markCustomerNotificationRead: markCustomerNotificationRead,
