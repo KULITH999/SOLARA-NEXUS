@@ -1773,7 +1773,11 @@ function applyPaymentRequestToVps_(sheet, rowNo, row, idx, actor) {
     targetExpiry = 0;
   } else if (!targetExpiry) {
     const oldExpiry = (!isNewOrder && found) ? Number(found.client.expiryTime || 0) : 0;
-    targetExpiry = Math.max(Date.now(), oldExpiry) + durationDays * 24 * 60 * 60 * 1000;
+    // Renewals start from the exact approval/renewal time; do not carry forward
+    // any remaining days from the previous subscription. Other purchase flows
+    // retain their existing expiry calculation.
+    const expiryBase = isRenewal ? Date.now() : Math.max(Date.now(), oldExpiry);
+    targetExpiry = expiryBase + durationDays * 24 * 60 * 60 * 1000;
     row[idx.TargetExpiryMs] = targetExpiry;
     sheet.getRange(rowNo, 1, 1, row.length).setValues([row]);
   }
