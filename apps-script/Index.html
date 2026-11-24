@@ -761,7 +761,7 @@ footer .brand{justify-content:center;margin-bottom:14px;color:var(--text)}
   <div class="dash">
 
     <div class="dtop">
-      <span class="tb wallet"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><small>WALLET</small> <b id="walletBalanceTop">LKR 0</b></span>
+      <button type="button" class="tb wallet" id="topWalletBtn"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg><small>WALLET</small> <b id="walletBalanceTop">LKR 0</b></button>
       <a href="#home" class="tb">Back to Home</a>
       <button type="button" class="tb" id="topOrderServicesBtn"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/></svg>Order Services</button>
       <button class="theme" id="themeD" type="button" aria-label="Toggle light or dark mode" title="Light / Dark">
@@ -1842,6 +1842,7 @@ function setPane(p){
 }
 document.querySelectorAll('.side button').forEach(b=>b.addEventListener('click',()=>setPane(b.dataset.p)));
 $('topOrderServicesBtn').addEventListener('click',()=>setPane('order'));
+$('topWalletBtn').addEventListener('click',()=>setPane('wallet'));
 $('uBtn').addEventListener('click',e=>{e.stopPropagation();$('uMenu').hidden=!$('uMenu').hidden;});
 document.addEventListener('click',()=>{$('uMenu').hidden=true;});
 $('uProfile').addEventListener('click',e=>{e.preventDefault();setPane('profile');});
